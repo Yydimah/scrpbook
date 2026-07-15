@@ -1,0 +1,627 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f4afca; /* Warna terracotta soft */
+    font-family: 'Gochi Hand', cursive, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100dvh; 
+    overflow: hidden;
+    padding: 15px; /* Sedikit ruang di tepian layar A32 */
+}
+
+/* Container Utama - Fleksibel mengikuti tinggi slide yang aktif */
+.slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 380px; /* Sangat pas dengan lebar viewport Samsung A32 */
+    perspective: 1000px;
+    display: grid; /* Menggunakan grid agar slide menumpuk rapi di satu tempat */
+    align-items: start; /* Aligned ke atas agar slide pendek tidak melayang */
+}
+
+/* Sistem Slider Baru - Efek Remuk & Kupu-Kupu */
+.slide {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: auto;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.6s ease-in-out; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+    transform: scale(1) rotate(0deg);
+}
+
+/* SINKRONISASI: Durasi total 0.7s (700ms) */
+.slide.crumple-leaving {
+    animation: crumpleEffect 0.7s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.slide.butterfly-entering{
+    animation: loveToPaper 1s forwards ease-out;
+    transform-origin: center;
+}
+
+.start-music-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: #ff6b81;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.start-music-btn:active {
+    transform: scale(0.95);
+}
+
+/* PENGATURAN WAKTU TIMING KEYFRAME AGAR PAS DENGAN JS (MELEDAK DI 50% / 350ms) */
+@keyframes crumpleEffect {
+    0% {
+        transform: perspective(1200px) rotateX(0) rotateY(0) scale(1);
+        clip-path: inset(0 round 16px);
+        border-radius: 16px;
+        opacity: 1;
+    }
+
+    /* Kertas mulai melipat cepat */
+    20% {
+        transform: perspective(1200px) rotateY(18deg) scale(0.85);
+        clip-path: polygon(10% 0%, 90% 0%, 100% 35%, 85% 100%, 50% 82%, 15% 100%, 0% 35%);
+    }
+
+    /* Menjelang 350ms, mengkerut drastis ke tengah */
+    40% {
+        transform: perspective(1200px) rotateY(-18deg) rotateX(10deg) scale(0.6);
+        clip-path: polygon(50% 100%, 8% 48%, 5% 20%, 22% 2%, 40% 10%, 50% 24%, 60% 10%, 78% 2%, 95% 20%, 92% 48%);
+    }
+
+    /* TEPAT 50% (350ms): Bentuk bola terkecil di tengah. Di titik inilah JS memicu letupan kupu-kupu */
+    50% {
+        transform: perspective(1200px) scale(0.3) rotate(-8deg);
+        clip-path: polygon(50% 100%, 0% 42%, 0% 18%, 22% 0%, 50% 22%, 78% 0%, 100% 18%, 100% 42%);
+        opacity: 1;
+    }
+
+    /* Sisa waktu (350ms terakhir) digunakan bola untuk melesat terbang ke atas luar layar */
+    75% {
+        transform: translate(45px, -180px) rotate(20deg) scale(0.2);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(90px, -360px) rotate(45deg) scale(0);
+        opacity: 0;
+    }
+}
+
+.slide.crumple-leaving .paper-page{
+    transform-style: preserve-3d;
+    transform-origin: center;
+    animation: foldPulse .18s ease-in-out infinite alternate;
+}
+
+@keyframes foldPulse{
+    from{
+        transform: rotateY(-8deg);
+        filter: brightness(.95);
+    }
+    to{
+        transform: rotateY(8deg);
+        filter: brightness(1.08);
+    }
+}
+
+@keyframes loveToPaper {
+    0%{
+        opacity: 0;
+        transform: perspective(1200px) scale(.05) rotate(-20deg);
+        clip-path: polygon(50% 100%, 0% 42%, 0% 18%, 22% 0%, 50% 22%, 78% 0%, 100% 18%, 100% 42%);
+    }
+    25%{
+        opacity: 1;
+        transform: perspective(1200px) scale(.35) rotate(10deg) rotateY(20deg);
+        clip-path: polygon(50% 100%, 8% 48%, 5% 20%, 22% 2%, 40% 10%, 50% 24%, 60% 10%, 78% 2%, 95% 20%, 92% 48%);
+    }
+    50%{
+        transform: perspective(1200px) scale(.65) rotateY(-15deg);
+        clip-path: polygon(10% 0%, 90% 0%, 100% 35%, 85% 100%, 50% 82%, 15% 100%, 0% 35%);
+    }
+    75%{
+        transform: perspective(1200px) scale(.9) rotateY(8deg);
+        clip-path: inset(3% round 18px);
+    }
+    100%{
+        opacity: 1;
+        transform: perspective(1200px) scale(1) rotate(0deg);
+        clip-path: inset(0 round 16px);
+    }
+}
+
+/* STYLE UNTUK PARTIKEL KUPU-KUPU YANG DIPANGGIL OLEH JS */
+.butterfly-particle {
+    position: absolute;
+    font-size: 1.8rem;
+    pointer-events: none;
+    z-index: 99;
+    transform: translate(-50%, -50%);
+    animation: flyAway 0.8s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
+}
+
+@keyframes flyAway {
+    0% {
+        transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        /* Nilai-nilai ini disuntikkan dinamis melalui elemen CSS Variables di JavaScript */
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(var(--s)) rotate(var(--r));
+        opacity: 0;
+    }
+}
+
+/* Kertas Halaman Scrapbook - Ukuran Menyesuaikan Isi */
+.paper-page {
+    background: #f4ebd9; 
+    background-image: radial-gradient(#e4d5be 1px, transparent 0); 
+    background-size: 8px 8px;
+    width: 100%;
+    height: auto; /* Tinggi kertas otomatis menyesuaikan isi slide */
+    min-height: 330px; /* Batas tinggi minimum agar tidak terlalu pesek */
+    border-radius: 16px; /* Sudut kertas sedikit lebih membulat manis */
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    padding: 25px 20px; /* Padding pas agar tidak terlalu sempit di layar lebar A32 */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Efek Sobek Pinggir Kertas (Slide 5) */
+.torn-edge {
+    clip-path: polygon(
+        0% 0%, 100% 0%, 100% 97%, 98% 99%, 96% 96%, 94% 98%, 92% 96%, 90% 99%, 
+        88% 97%, 86% 99%, 84% 96%, 82% 98%, 80% 96%, 78% 99%, 76% 97%, 74% 99%, 
+        72% 96%, 70% 98%, 68% 96%, 66% 99%, 64% 97%, 62% 99%, 60% 96%, 58% 98%, 
+        56% 96%, 54% 99%, 52% 97%, 50% 99%, 48% 96%, 46% 98%, 44% 96%, 42% 99%, 
+        40% 97%, 38% 99%, 36% 96%, 34% 98%, 32% 96%, 30% 99%, 28% 97%, 26% 99%, 
+        24% 96%, 22% 98%, 20% 96%, 18% 99%, 16% 97%, 14% 99%, 12% 96%, 10% 98%, 
+        8% 96%, 6% 99%, 4% 97%, 2% 99%, 0% 96%
+    );
+}
+
+/* Gaya Tulisan Koran Potong */
+.scrapbook-title-box, .cutout-container {
+    background: #f7ede2;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    line-height: 2.1;
+    width: 100%;
+}
+
+.letter {
+    font-family: 'Fredoka One', cursive;
+    display: inline-block;
+    padding: 5px 12px; 
+    margin: 3px;
+    font-size: 1.4rem; /* Ukuran pas untuk layar A32 */
+    box-shadow: 2px 3px 5px rgba(0,0,0,0.15);
+    transform: rotate(var(--r, 0deg));
+}
+
+/* Variasi Warna Kertas Potongan */
+.tag-pink { background: #ffadad; color: #fff; --r: -4deg; }
+.tag-yellow { background: #ffd6a5; color: #4a4a4a; --r: 3deg; }
+.tag-blue { background: #caffbf; color: #4a4a4a; --r: -2deg; }
+.tag-purple { background: #9bf6ff; color: #4a4a4a; --r: 5deg; }
+.tag-orange { background: #a0c4ff; color: #fff; --r: -3deg; }
+.tag-white { background: #ffffff; color: #333; border: 1px dashed #ccc; --r: 2deg; }
+.tag-red { background: #ff7096; color: #fff; --r: -5deg; }
+
+/* Teks Tulisan Tangan */
+.subtitle {
+    color: #fff;
+    margin-top: 20px;
+    font-size: 1.3rem;
+}
+
+.handwritten-text {
+    font-family: 'Caveat', cursive;
+    font-size: 1.7rem;
+    color: #5c4d3c;
+    text-align: center;
+}
+
+.paragraph-text {
+    font-family: 'Caveat', cursive;
+    font-size: 1.6rem; 
+    line-height: 1.45;
+    color: #4a3e3d;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.date-text {
+    align-self: flex-end;
+    margin-top: 12px;
+    margin-right: 10px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: #7c6c5c;
+}
+
+/* Dekorasi & Aksesoris Tempelan */
+.decor {
+    position: absolute;
+    font-size: 2.2rem; 
+    user-select: none;
+    z-index: 10;
+}
+.camera { top: -30px; left: 3px; transform: rotate(-10deg); }
+.flower-top { top: -30px; right: -3px; }
+.ticket { bottom: 100px; left: -3px; transform: rotate(-15deg); font-family: sans-serif; background: #fff; padding: 2px 6px; border: 1px dashed red; font-size: 0.75rem; color: red; }
+.butterfly { bottom: 80px; right: 2px; transform: rotate(15deg); }
+.flower-pink { top: 0px; right: 0px; }
+.flower-pink1 { bottom: 0px; left: 0px; }
+.sparkle { top: 0px; left: 0px; }
+.star-yellow { top: 0px; left: 0px; }
+.flower-small { top: 0px; right: 0px; }
+.heart-yellow { bottom: 12px; left: 0px; }
+.flower-hibiscus { top: -10px; right: -10px; font-size: 2.8rem; }
+.butterfly-bottom { bottom: 5px; left: 5px; }
+.ribbon-red { top: -11px; left: 41.5%; font-size: 2.8rem; }
+.leaves { top: 40%; left: 175px; }
+.butterfly-right { top: 43%; right: 5px; }
+.star-bottom { bottom: 15px; left: 43%; }
+
+.paper-tape {
+    position: absolute;
+    top: -10px;
+    width: 65px;
+    height: 18px;
+    background: rgba(238, 205, 130, 0.7);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transform: rotate(-3deg);
+    z-index: 2;
+}
+
+/* Tombol Aksi */
+.btn-open {
+    background: #b81d52;
+    color: white;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 25px;
+    font-family: 'Gochi Hand', sans-serif;
+    font-size: 1.25rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    margin-top: 20px;
+    transition: transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn-open:active { transform: scale(0.95); }
+
+/* Polaroid Frame */
+.polaroid {
+    background: #fff;
+    padding: 10px 10px 20px 10px; 
+    box-shadow: 3px 5px 15px rgba(0,0,0,0.15);
+    border: 15px solid #eaeaea;
+    text-align: center;
+}
+
+.polaroid img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.polaroid-caption {
+    font-family: 'Caveat', cursive;
+    margin-top: 8px;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.polaroid-main {
+    width: 82%; 
+    transform: rotate(-3deg);
+    position: relative;
+}
+
+.tape-polaroid {
+    position: absolute;
+    top: -10px;
+    left: 40%;
+    width: 45px;
+    height: 15px;
+    background: rgba(246, 224, 151, 0.8);
+    transform: rotate(2deg);
+}
+
+/* Wishes Slide */
+.wishes-title {
+    font-family: 'Fredoka One', sans-serif;
+    color: #b81d52;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+.wishes-list {
+    list-style: none;
+    width: 90%;
+}
+.wishes-list li {
+    font-size: 1.4rem; 
+    color: #4a3e3d;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Grid Multiple Polaroid (Slide Last) */
+.grid-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px; 
+    padding: 15px 10px;
+    width: 100%;
+}
+.grid-page .polaroid {
+    padding: 6px 6px 12px 6px;
+}
+.grid-page .polaroid-caption {
+    font-size: 1rem; 
+}
+.p1 { transform: rotate(-4deg); }
+.p2 { transform: rotate(3deg); }
+.p3 { transform: rotate(2deg); }
+.p4 { transform: rotate(-3deg); }
+
+/* Navigasi Controls */
+.controls-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px; 
+    width: 100%;
+    max-width: 380px;
+    margin-top: 20px; 
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.controls-container.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.nav-btn {
+    border: none;
+    padding: 10px 24px; 
+    font-family: 'Gochi Hand', sans-serif;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 2px 4px 6px rgba(0,0,0,0.1);
+    position: relative;
+    color: #4a4a4a; 
+    border-radius: 4px; 
+    overflow: visible; 
+    -webkit-tap-highlight-color: transparent;
+}
+
+.prev-btn {
+    background: rgba(255, 173, 173, 1); 
+    transform: rotate(-3deg);
+}
+
+.next-btn {
+    background: rgba(255, 214, 165, 1); 
+    transform: rotate(2deg);
+}
+
+.nav-btn::before {
+    content: '📌';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.nav-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    border-right: 3px dashed rgba(255, 255, 255, 0.4); 
+}
+
+.nav-btn:hover {
+    transform: rotate(0deg) scale(1.05); 
+    box-shadow: 4px 6px 12px rgba(0,0,0,0.15);
+}
+
+.nav-btn:active {
+    transform: scale(0.98);
+}
+
+.dots-container {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dot.active {
+    background: #fff;
+    transform: scale(1.2);
+}
+
+.music-box {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 100;
+}
+
+#musicBtn {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 42px; 
+    height: 42px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: white;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* --- INTERAKTIF KADO (SAMSUNG A32 FIT) --- */
+.tap-hint {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    color: #7c6c5c;
+    margin-bottom: 12px;
+    animation: bounce 1.5s infinite ease-in-out;
+}
+
+.gift-container {
+    position: relative;
+    width: 140px; 
+    height: 115px; 
+    cursor: pointer;
+    margin-top: -10px;
+    margin-bottom: 40px; 
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Tutup Kado */
+.gift-lid {
+    position: absolute;
+    top: -17px; 
+    left: -4px;
+    width: 148px;
+    height: 22px;
+    background: #c72c61;
+    border-radius: 4px;
+    z-index: 5;
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+}
+
+.lid-ribbon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 100%;
+    background: #f1c40f;
+}
+
+.gift-lid::before {
+    content: '💝';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.6rem;
+}
+
+/* Badan Kado */
+.gift-box-body {
+    position: absolute;
+    bottom: 17px;
+    left: 0;
+    width: 140px;
+    height: 95px; 
+    background: #b81d52;
+    border-radius: 0 0 4px 4px;
+    z-index: 3;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+}
+
+.body-ribbon {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 100%;
+    background: #f1c40f;
+}
+
+/* Isi Surprise */
+.gift-surprise-text {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translate(-50%, 0) scale(0.05); 
+    text-align: center;
+    opacity: 0;
+    visibility: hidden; 
+    z-index: 2;
+    transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    line-height: 2.1; 
+    width: max-content;
+}
+
+.gift-container.open .gift-lid {
+    transform: translateY(-65px) rotate(-15deg); 
+}
+
+.gift-container.open .gift-surprise-text {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 65px) scale(0.70); /* Posisi disesuaikan agar tidak meluber keluar kertas */
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
